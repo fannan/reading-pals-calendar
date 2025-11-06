@@ -24,3 +24,82 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* FullCalendar Custom Styles */
+.fc {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.fc .fc-button-primary {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  transition: all 0.2s;
+}
+
+.fc .fc-button-primary:hover:not(:disabled) {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.fc .fc-button-primary:focus {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.fc .fc-button-active {
+  background-color: #1e40af !important;
+  border-color: #1e40af !important;
+}
+
+.fc-event {
+  border-radius: 6px;
+  padding: 2px 4px;
+  margin-bottom: 2px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.fc-event:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.fc-daygrid-day-number {
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 8px;
+}
+
+.fc-col-header-cell {
+  background-color: #f9fafb;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  padding: 12px 0;
+}
+
+.fc-scrollgrid {
+  border-color: #e5e7eb !important;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #e5e7eb !important;
+}
+
+.fc-day-today {
+  background-color: #eff6ff !important;
+}
+
+.fc-daygrid-day:hover {
+  background-color: #f9fafb;
+  transition: background-color 0.2s;
+}
