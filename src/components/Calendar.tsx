@@ -86,8 +86,8 @@ export default function Calendar({ events }: CalendarProps) {
               );
             }
 
-            if (type === 'substitute' && substitutes) {
-              // Consolidated substitute event
+            if (type === 'substitute-claimed' && substitutes) {
+              // Claimed substitute event
               return (
                 <div className="p-1.5 overflow-hidden">
                   <div className="font-bold text-xs mb-1">
@@ -102,6 +102,29 @@ export default function Calendar({ events }: CalendarProps) {
                         <div className="text-[9px] opacity-80 italic truncate">
                           for {sub.original} • {sub.time}
                         </div>
+                      </div>
+                    ))}
+                    {substitutes.length > 4 && (
+                      <div className="text-[10px] italic opacity-80">
+                        +{substitutes.length - 4} more...
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
+
+            if (type === 'substitute-open' && substitutes) {
+              // Open substitute event
+              return (
+                <div className="p-1.5 overflow-hidden">
+                  <div className="font-bold text-xs mb-1">
+                    {eventInfo.event.title}
+                  </div>
+                  <div className="text-[10px] space-y-0.5 max-h-20 overflow-y-auto">
+                    {substitutes.slice(0, 4).map((sub: any, idx: number) => (
+                      <div key={idx} className="truncate leading-tight">
+                        {sub.original} for {sub.student} • {sub.time}
                       </div>
                     ))}
                     {substitutes.length > 4 && (
@@ -229,7 +252,7 @@ export default function Calendar({ events }: CalendarProps) {
                 );
               })()}
 
-              {selectedEvent.extendedProps.type === 'substitute' && selectedEvent.extendedProps.substitutes && (() => {
+              {selectedEvent.extendedProps.type === 'substitute-claimed' && selectedEvent.extendedProps.substitutes && (() => {
                 // Group substitutes by time slot
                 const subsByTime = selectedEvent.extendedProps.substitutes.reduce((acc: any, sub: any) => {
                   const time = sub.time;
@@ -291,6 +314,79 @@ export default function Calendar({ events }: CalendarProps) {
                                 </div>
                                 <div className="text-sm text-gray-500 italic mt-2 pt-2 border-t border-orange-200">
                                   Substituting for: <span className="font-medium">{sub.original}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {selectedEvent.extendedProps.type === 'substitute-open' && selectedEvent.extendedProps.substitutes && (() => {
+                // Group open substitutes by time slot
+                const subsByTime = selectedEvent.extendedProps.substitutes.reduce((acc: any, sub: any) => {
+                  const time = sub.time;
+                  if (!acc[time]) {
+                    acc[time] = [];
+                  }
+                  acc[time].push(sub);
+                  return acc;
+                }, {});
+
+                // Sort time slots
+                const sortedTimes = Object.keys(subsByTime).sort((a, b) => {
+                  const parseTime = (timeStr: string) => {
+                    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (!match) return 0;
+                    let hours = parseInt(match[1]);
+                    const minutes = parseInt(match[2]);
+                    const period = match[3].toUpperCase();
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                    return hours * 60 + minutes;
+                  };
+                  return parseTime(a) - parseTime(b);
+                });
+
+                return (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      Open Substitute Requests ({selectedEvent.extendedProps.substitutes.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {sortedTimes.map((time: string) => (
+                        <div key={time}>
+                          <div className="flex items-center mb-3">
+                            <div className="text-sm font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-full">
+                              {time}
+                            </div>
+                            <div className="flex-1 h-px bg-gray-200 ml-3"></div>
+                          </div>
+                          <div className="space-y-2 ml-4">
+                            {subsByTime[time].map((sub: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-gray-50 border-l-4 border-l-gray-400 border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-800">
+                                      Sub Needed
+                                      <span className="ml-2 text-xs bg-gray-500 text-white px-2 py-1 rounded-full">
+                                        OPEN
+                                      </span>
+                                    </div>
+                                    <div className="text-gray-600 flex items-center mt-1 text-sm">
+                                      <span className="mr-2">→</span>
+                                      <span>{sub.student}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-gray-500 italic mt-2 pt-2 border-t border-gray-200">
+                                  Covering for: <span className="font-medium">{sub.original}</span>
                                 </div>
                               </div>
                             ))}

@@ -53,14 +53,14 @@ export interface CalendarEvent {
   textColor?: string;
   allDay?: boolean;
   extendedProps: {
-    type: 'session' | 'substitute' | 'holiday';
+    type: 'session' | 'substitute-claimed' | 'substitute-open' | 'holiday';
     reason?: string;
     matches?: Match[];
     dayOfWeek?: string;
     substitutes?: Array<{
       id: string;
       time: string;
-      substitute: string;
+      substitute?: string;
       original: string;
       student: string;
     }>;

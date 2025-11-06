@@ -75,23 +75,33 @@ function App() {
       }
     });
 
-    const subsByDate = new Map<string, typeof data.subs>();
+    // Group substitutes by date and claim status
+    const claimedSubsByDate = new Map<string, typeof data.subs>();
+    const openSubsByDate = new Map<string, typeof data.subs>();
+
     data.subs?.forEach((sub) => {
+      const date = sub.property_date.start;
+
       if (sub.property_claim_status === 'Claimed' && sub.property_claimed_by) {
-        const date = sub.property_date.start;
-        if (!subsByDate.has(date)) {
-          subsByDate.set(date, []);
+        if (!claimedSubsByDate.has(date)) {
+          claimedSubsByDate.set(date, []);
         }
-        subsByDate.get(date)!.push(sub);
+        claimedSubsByDate.get(date)!.push(sub);
+      } else if (sub.property_claim_status === 'Open') {
+        if (!openSubsByDate.has(date)) {
+          openSubsByDate.set(date, []);
+        }
+        openSubsByDate.get(date)!.push(sub);
       }
     });
 
-    subsByDate.forEach((subs, date) => {
+    // Add claimed substitutes (orange)
+    claimedSubsByDate.forEach((subs, date) => {
       const subCount = subs.length;
       const uniqueSubs = new Set(subs.map(s => s.property_claimed_by)).size;
 
       events.push({
-        id: `subs-${date}`,
+        id: `subs-claimed-${date}`,
         title: `${uniqueSubs} Substitute${uniqueSubs > 1 ? 's' : ''} (${subCount} session${subCount > 1 ? 's' : ''})`,
         start: `${date}T00:00:00`,
         end: `${date}T23:59:59`,
@@ -100,11 +110,36 @@ function App() {
         textColor: '#ffffff',
         allDay: true,
         extendedProps: {
-          type: 'substitute',
+          type: 'substitute-claimed',
           substitutes: subs.map(sub => ({
             id: sub.id,
             time: sub.property_time,
             substitute: sub.property_claimed_by,
+            original: sub.property_volunteer,
+            student: sub.property_student,
+          })),
+        },
+      });
+    });
+
+    // Add open substitutes (gray)
+    openSubsByDate.forEach((subs, date) => {
+      const subCount = subs.length;
+
+      events.push({
+        id: `subs-open-${date}`,
+        title: `${subCount} Open Sub${subCount > 1 ? 's' : ''} Needed`,
+        start: `${date}T00:00:00`,
+        end: `${date}T23:59:59`,
+        backgroundColor: '#9ca3af',
+        borderColor: '#6b7280',
+        textColor: '#ffffff',
+        allDay: true,
+        extendedProps: {
+          type: 'substitute-open',
+          substitutes: subs.map(sub => ({
+            id: sub.id,
+            time: sub.property_time,
             original: sub.property_volunteer,
             student: sub.property_student,
           })),
@@ -128,16 +163,20 @@ function App() {
               View and manage reading program volunteer sessions
             </p>
           </div>
-          <div className="flex gap-4 items-center">
-            <div className="flex items-center gap-2">
+          <div className="flex gap-3 items-center">
+            <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 bg-[#1e5a8e] rounded"></div>
               <span className="text-xs text-gray-600">Sessions</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 bg-[#f5a623] rounded"></div>
-              <span className="text-xs text-gray-600">Substitutes</span>
+              <span className="text-xs text-gray-600">Claimed Subs</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <div className="w-3 h-3 bg-[#9ca3af] rounded"></div>
+              <span className="text-xs text-gray-600">Open Subs</span>
+            </div>
+            <div className="flex items-center gap-1.5">
               <div className="w-3 h-3 bg-red-500 rounded"></div>
               <span className="text-xs text-gray-600">Holidays</span>
             </div>
