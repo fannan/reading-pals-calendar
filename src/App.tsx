@@ -117,43 +117,31 @@ function App() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[#1e5a8e] mb-1">
-                Reading Pals
-              </h1>
-              <p className="text-sm text-gray-600">Marcella Foundation</p>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">
+              Volunteer Schedule
+            </h2>
+            <p className="text-gray-600">
+              View and manage reading program volunteer sessions
+            </p>
+          </div>
+          <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-[#1e5a8e] rounded"></div>
+              <span className="text-xs text-gray-600">Sessions</span>
             </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#1e5a8e] rounded"></div>
-                <span className="text-xs text-gray-600">Sessions</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-[#f5a623] rounded"></div>
-                <span className="text-xs text-gray-600">Substitutes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-red-500 rounded"></div>
-                <span className="text-xs text-gray-600">Holidays</span>
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-[#f5a623] rounded"></div>
+              <span className="text-xs text-gray-600">Substitutes</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-3 h-3 bg-red-500 rounded"></div>
+              <span className="text-xs text-gray-600">Holidays</span>
             </div>
           </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            Volunteer Schedule
-          </h2>
-          <p className="text-gray-600">
-            View and manage reading program volunteer sessions
-          </p>
         </div>
 
         {loading && (
