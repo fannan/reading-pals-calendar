@@ -161,73 +161,146 @@ export default function Calendar({ events }: CalendarProps) {
                 </div>
               )}
 
-              {selectedEvent.extendedProps.type === 'session' && selectedEvent.extendedProps.matches && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Regular Sessions ({selectedEvent.extendedProps.matches.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {selectedEvent.extendedProps.matches.map((match: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="bg-blue-50 border-l-4 border-l-[#1e5a8e] border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-800 text-lg">
-                              {match.volunteer.name}
-                            </div>
-                            <div className="text-gray-600 flex items-center mt-1">
-                              <span className="mr-2">→</span>
-                              <span>{match.student.name}</span>
-                            </div>
-                          </div>
-                          <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full">
-                            {match.time}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {selectedEvent.extendedProps.type === 'session' && selectedEvent.extendedProps.matches && (() => {
+                // Group matches by time slot
+                const matchesByTime = selectedEvent.extendedProps.matches.reduce((acc: any, match: any) => {
+                  const time = match.time;
+                  if (!acc[time]) {
+                    acc[time] = [];
+                  }
+                  acc[time].push(match);
+                  return acc;
+                }, {});
 
-              {selectedEvent.extendedProps.type === 'substitute' && selectedEvent.extendedProps.substitutes && (
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-4">
-                    Substitute Sessions ({selectedEvent.extendedProps.substitutes.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {selectedEvent.extendedProps.substitutes.map((sub: any, idx: number) => (
-                      <div
-                        key={idx}
-                        className="bg-orange-50 border-l-4 border-l-[#f5a623] border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-800 text-lg">
-                              {sub.substitute}
-                              <span className="ml-2 text-xs bg-[#f5a623] text-white px-2 py-1 rounded-full">
-                                SUB
-                              </span>
+                // Sort time slots
+                const sortedTimes = Object.keys(matchesByTime).sort((a, b) => {
+                  // Parse times for proper sorting
+                  const parseTime = (timeStr: string) => {
+                    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (!match) return 0;
+                    let hours = parseInt(match[1]);
+                    const minutes = parseInt(match[2]);
+                    const period = match[3].toUpperCase();
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                    return hours * 60 + minutes;
+                  };
+                  return parseTime(a) - parseTime(b);
+                });
+
+                return (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      Regular Sessions ({selectedEvent.extendedProps.matches.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {sortedTimes.map((time: string) => (
+                        <div key={time}>
+                          <div className="flex items-center mb-3">
+                            <div className="text-sm font-bold text-[#1e5a8e] bg-blue-50 px-3 py-1 rounded-full">
+                              {time}
                             </div>
-                            <div className="text-gray-600 flex items-center mt-1">
-                              <span className="mr-2">→</span>
-                              <span>{sub.student}</span>
-                            </div>
+                            <div className="flex-1 h-px bg-gray-200 ml-3"></div>
                           </div>
-                          <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full">
-                            {sub.time}
+                          <div className="space-y-2 ml-4">
+                            {matchesByTime[time].map((match: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-blue-50 border-l-4 border-l-[#1e5a8e] border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-800">
+                                      {match.volunteer.name}
+                                    </div>
+                                    <div className="text-gray-600 flex items-center mt-1 text-sm">
+                                      <span className="mr-2">→</span>
+                                      <span>{match.student.name}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
-                        <div className="text-sm text-gray-500 italic mt-2 pt-2 border-t border-orange-200">
-                          Substituting for: <span className="font-medium">{sub.original}</span>
-                        </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
+
+              {selectedEvent.extendedProps.type === 'substitute' && selectedEvent.extendedProps.substitutes && (() => {
+                // Group substitutes by time slot
+                const subsByTime = selectedEvent.extendedProps.substitutes.reduce((acc: any, sub: any) => {
+                  const time = sub.time;
+                  if (!acc[time]) {
+                    acc[time] = [];
+                  }
+                  acc[time].push(sub);
+                  return acc;
+                }, {});
+
+                // Sort time slots
+                const sortedTimes = Object.keys(subsByTime).sort((a, b) => {
+                  const parseTime = (timeStr: string) => {
+                    const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+                    if (!match) return 0;
+                    let hours = parseInt(match[1]);
+                    const minutes = parseInt(match[2]);
+                    const period = match[3].toUpperCase();
+                    if (period === 'PM' && hours !== 12) hours += 12;
+                    if (period === 'AM' && hours === 12) hours = 0;
+                    return hours * 60 + minutes;
+                  };
+                  return parseTime(a) - parseTime(b);
+                });
+
+                return (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                      Substitute Sessions ({selectedEvent.extendedProps.substitutes.length})
+                    </h3>
+                    <div className="space-y-6">
+                      {sortedTimes.map((time: string) => (
+                        <div key={time}>
+                          <div className="flex items-center mb-3">
+                            <div className="text-sm font-bold text-[#f5a623] bg-orange-50 px-3 py-1 rounded-full">
+                              {time}
+                            </div>
+                            <div className="flex-1 h-px bg-gray-200 ml-3"></div>
+                          </div>
+                          <div className="space-y-2 ml-4">
+                            {subsByTime[time].map((sub: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="bg-orange-50 border-l-4 border-l-[#f5a623] border border-gray-200 rounded-lg p-3 hover:shadow-md transition-all"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-gray-800">
+                                      {sub.substitute}
+                                      <span className="ml-2 text-xs bg-[#f5a623] text-white px-2 py-1 rounded-full">
+                                        SUB
+                                      </span>
+                                    </div>
+                                    <div className="text-gray-600 flex items-center mt-1 text-sm">
+                                      <span className="mr-2">→</span>
+                                      <span>{sub.student}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="text-sm text-gray-500 italic mt-2 pt-2 border-t border-orange-200">
+                                  Substituting for: <span className="font-medium">{sub.original}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Footer */}
