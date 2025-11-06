@@ -1,10 +1,10 @@
-'use client';
-
 import { useEffect, useState } from 'react';
-import Calendar from '@/components/Calendar';
-import { ScheduleResponse, ScheduleDay, CalendarEvent } from '@/types/schedule';
+import Calendar from './components/Calendar';
+import { ScheduleResponse, ScheduleDay, CalendarEvent } from './types/schedule';
 
-export default function Home() {
+const N8N_WEBHOOK_URL = 'https://tasks.sklabs.app/webhook/ec50065d-398b-4bfc-adaa-5378d8b444ea';
+
+function App() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -16,7 +16,7 @@ export default function Home() {
   const fetchSchedule = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/schedule');
+      const response = await fetch(N8N_WEBHOOK_URL);
 
       if (!response.ok) {
         throw new Error('Failed to fetch schedule');
@@ -32,75 +32,14 @@ export default function Home() {
     }
   };
 
-  const parseTime = (timeStr: string, date: string): { start: string; end: string } => {
-    try {
-      // Parse various time formats: "7:45 AM - 8:40 AM", "7:45–8:40 AM", "10:15–11:15 AM"
-      // Replace en-dash and other unicode dashes with regular hyphen
-      const normalizedTime = timeStr.replace(/–/g, '-').replace(/\u2013/g, '-').replace(/\u2014/g, '-');
-
-      let startTime: string, endTime: string;
-
-      // Check if there's a separator
-      if (normalizedTime.includes(' - ')) {
-        [startTime, endTime] = normalizedTime.split(' - ');
-      } else if (normalizedTime.includes('-')) {
-        // Handle formats like "10:15-11:15 AM" (no spaces around dash)
-        const parts = normalizedTime.split('-');
-        startTime = parts[0].trim();
-        endTime = parts[1].trim();
-
-        // If the end time doesn't have AM/PM, check if start has it and use the last one
-        if (!endTime.includes('AM') && !endTime.includes('PM')) {
-          const periodMatch = normalizedTime.match(/\s(AM|PM)$/);
-          if (periodMatch) {
-            endTime = endTime + ' ' + periodMatch[1];
-            startTime = startTime.replace(/\s(AM|PM)$/, '') + ' ' + periodMatch[1];
-          }
-        }
-      } else {
-        throw new Error(`Cannot parse time format: ${timeStr}`);
-      }
-
-      const parseTimeComponent = (time: string): string => {
-        if (!time) throw new Error('Time component is undefined');
-
-        const trimmed = time.trim();
-        const parts = trimmed.split(' ');
-        const timePart = parts[0];
-        const period = parts[1] || 'AM'; // Default to AM if not specified
-
-        const [hours, minutes] = timePart.split(':');
-        let hour = parseInt(hours);
-
-        if (period.toUpperCase() === 'PM' && hour !== 12) {
-          hour += 12;
-        } else if (period.toUpperCase() === 'AM' && hour === 12) {
-          hour = 0;
-        }
-
-        return `${date}T${hour.toString().padStart(2, '0')}:${minutes.padStart(2, '0')}:00`;
-      };
-
-      return {
-        start: parseTimeComponent(startTime),
-        end: parseTimeComponent(endTime),
-      };
-    } catch (error) {
-      console.error('Error parsing time:', { timeStr, date, error });
-      // Return a default time range if parsing fails
-      return {
-        start: `${date}T09:00:00`,
-        end: `${date}T10:00:00`,
-      };
-    }
-  };
+  // parseTime function removed as events are now consolidated by day
+  // Individual time-based events are shown in the modal details instead
 
   const transformToCalendarEvents = (data: ScheduleResponse): CalendarEvent[] => {
     const events: CalendarEvent[] = [];
 
     data.schedule.forEach((day: ScheduleDay) => {
       if (!day.isSession) {
-        // Create a holiday/no-session event
         events.push({
           id: `holiday-${day.scheduleId}`,
           title: `No Session - ${day.reason}`,
@@ -115,14 +54,8 @@ export default function Home() {
           },
         });
       } else if (day.matches.length > 0) {
-        // Create ONE consolidated event per day showing all sessions
         const volunteerCount = day.matches.length;
         const uniqueVolunteers = new Set(day.matches.map(m => m.volunteer.name)).size;
-
-        // Get time range for the day
-        const times = day.matches.map(m => m.time);
-        const firstMatch = day.matches[0];
-        const { start } = parseTime(firstMatch.time, day.date);
 
         events.push({
           id: `day-${day.scheduleId}`,
@@ -142,39 +75,17 @@ export default function Home() {
       }
     });
 
-    // Add consolidated substitute events from subs array
-    console.log('Processing substitutes:', {
-      totalSubs: data.subs?.length || 0,
-      claimed: data.subs?.filter(s => s.property_claim_status === 'Claimed').length || 0
-    });
-
-    // Group substitutes by date
     const subsByDate = new Map<string, typeof data.subs>();
-    data.subs?.forEach((sub, index) => {
+    data.subs?.forEach((sub) => {
       if (sub.property_claim_status === 'Claimed' && sub.property_claimed_by) {
         const date = sub.property_date.start;
         if (!subsByDate.has(date)) {
           subsByDate.set(date, []);
         }
         subsByDate.get(date)!.push(sub);
-
-        console.log(`Processing substitute #${index + 1}:`, {
-          date: sub.property_date.start,
-          time: sub.property_time,
-          substitute: sub.property_claimed_by,
-          original: sub.property_volunteer,
-          student: sub.property_student,
-        });
-      } else {
-        console.log(`Skipping substitute #${index + 1}:`, {
-          status: sub.property_claim_status,
-          claimedBy: sub.property_claimed_by,
-          reason: !sub.property_claimed_by ? 'No claimed_by' : 'Status not Claimed'
-        });
       }
     });
 
-    // Create one consolidated event per date for substitutes
     subsByDate.forEach((subs, date) => {
       const subCount = subs.length;
       const uniqueSubs = new Set(subs.map(s => s.property_claimed_by)).size;
@@ -184,7 +95,7 @@ export default function Home() {
         title: `${uniqueSubs} Substitute${uniqueSubs > 1 ? 's' : ''} (${subCount} session${subCount > 1 ? 's' : ''})`,
         start: `${date}T00:00:00`,
         end: `${date}T23:59:59`,
-        backgroundColor: '#f5a623', // FeedTahoe orange for substitutes
+        backgroundColor: '#f5a623',
         borderColor: '#d88e1a',
         textColor: '#ffffff',
         allDay: true,
@@ -272,3 +183,5 @@ export default function Home() {
     </div>
   );
 }
+
+export default App;
