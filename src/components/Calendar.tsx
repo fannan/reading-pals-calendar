@@ -55,8 +55,8 @@ export default function Calendar({ events }: CalendarProps) {
 
             if (type === 'holiday') {
               return (
-                <div className="p-2 overflow-hidden">
-                  <div className="font-semibold text-sm text-center">
+                <div className="p-1.5 overflow-hidden">
+                  <div className="font-semibold text-xs text-center">
                     {reason}
                   </div>
                 </div>
@@ -66,19 +66,19 @@ export default function Calendar({ events }: CalendarProps) {
             if (type === 'session' && matches) {
               // Consolidated session event
               return (
-                <div className="p-2 overflow-hidden">
-                  <div className="font-bold text-sm mb-1">
+                <div className="p-1.5 overflow-hidden">
+                  <div className="font-bold text-xs mb-1">
                     {eventInfo.event.title}
                   </div>
-                  <div className="text-xs space-y-0.5 max-h-20 overflow-y-auto">
-                    {matches.slice(0, 3).map((match: any, idx: number) => (
-                      <div key={idx} className="truncate">
+                  <div className="text-[10px] space-y-0.5 max-h-20 overflow-y-auto">
+                    {matches.slice(0, 4).map((match: any, idx: number) => (
+                      <div key={idx} className="truncate leading-tight">
                         {match.volunteer.name} → {match.student.name}
                       </div>
                     ))}
-                    {matches.length > 3 && (
-                      <div className="text-xs italic opacity-80">
-                        +{matches.length - 3} more...
+                    {matches.length > 4 && (
+                      <div className="text-[10px] italic opacity-80">
+                        +{matches.length - 4} more...
                       </div>
                     )}
                   </div>
@@ -89,24 +89,24 @@ export default function Calendar({ events }: CalendarProps) {
             if (type === 'substitute' && substitutes) {
               // Consolidated substitute event
               return (
-                <div className="p-2 overflow-hidden">
-                  <div className="font-bold text-sm mb-1">
+                <div className="p-1.5 overflow-hidden">
+                  <div className="font-bold text-xs mb-1">
                     {eventInfo.event.title}
                   </div>
-                  <div className="text-xs space-y-0.5 max-h-20 overflow-y-auto">
-                    {substitutes.slice(0, 3).map((sub: any, idx: number) => (
+                  <div className="text-[10px] space-y-0.5 max-h-20 overflow-y-auto">
+                    {substitutes.slice(0, 4).map((sub: any, idx: number) => (
                       <div key={idx} className="space-y-0.5">
-                        <div className="truncate">
+                        <div className="truncate leading-tight">
                           <span className="font-semibold">{sub.substitute}</span> → {sub.student}
                         </div>
-                        <div className="text-[10px] opacity-80 italic truncate">
+                        <div className="text-[9px] opacity-80 italic truncate">
                           for {sub.original} • {sub.time}
                         </div>
                       </div>
                     ))}
-                    {substitutes.length > 3 && (
-                      <div className="text-xs italic opacity-80">
-                        +{substitutes.length - 3} more...
+                    {substitutes.length > 4 && (
+                      <div className="text-[10px] italic opacity-80">
+                        +{substitutes.length - 4} more...
                       </div>
                     )}
                   </div>
